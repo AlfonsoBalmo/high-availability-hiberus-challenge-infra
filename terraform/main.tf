@@ -6,10 +6,16 @@ resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
 
-resource "aws_subnet" "main" {
+resource "aws_subnet" "main_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
+}
+
+resource "aws_subnet" "main_b" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
 }
 
 resource "aws_security_group" "web" {
@@ -48,14 +54,15 @@ resource "aws_security_group" "db" {
   }
 }
 
-resource "aws_db_instance" "default" {
+resource "aws_db_instance" "hiberus-challenge" {
   allocated_storage    = 20
   engine               = "postgres"
-  instance_class       = "db.t2.micro"
-  identifier           = "mydb"
-  username             = "user"
-  password             = "321654"
-  parameter_group_name = "default.postgres10"
+  engine_version       = "13.14" 
+  instance_class       = "db.t3.micro"
+  identifier           = "challenge-hiberus"
+  username             = "dbuser"
+  password             = "321654hiberus"
+  parameter_group_name = "default.postgres13"
   skip_final_snapshot  = true
   vpc_security_group_ids = [aws_security_group.db.id]
   db_subnet_group_name = aws_db_subnet_group.main.name
@@ -63,7 +70,7 @@ resource "aws_db_instance" "default" {
 
 resource "aws_db_subnet_group" "main" {
   name       = "main"
-  subnet_ids = [aws_subnet.main.id]
+  subnet_ids = [aws_subnet.main_a.id, aws_subnet.main_b.id]
 }
 
 resource "aws_ecr_repository" "app_repo" {
@@ -71,9 +78,9 @@ resource "aws_ecr_repository" "app_repo" {
 }
 
 resource "aws_instance" "app_server" {
-  ami           = "ami-12345678"  # Reemplazar con una AMI válida para us-east-1
+  ami           = "ami-02aead0a55359d6ec"  # Reemplazar con una AMI válida para us-east-1
   instance_type = "t3.micro"
-  subnet_id     = aws_subnet.main.id
+  subnet_id     = aws_subnet.main_a.id
   vpc_security_group_ids = [aws_security_group.web.id]
 
   user_data = file("${path.module}/../ec2/user-data.sh")
