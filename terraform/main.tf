@@ -74,7 +74,7 @@ resource "aws_db_subnet_group" "main" {
 }
 
 resource "aws_ecr_repository" "app_repo" {
-  name = "your-ecr-repository"
+  name = "hiberus-repository"
 }
 
 resource "aws_instance" "app_server" {
